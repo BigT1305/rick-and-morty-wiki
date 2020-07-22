@@ -1,8 +1,63 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Head from 'next/head';
 import Link from 'next/link';
 
 const defaultEndpoint = 'https://rickandmortyapi.com/api/character/';
+
+const gridVariants = {
+  exit: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const gridMotionProps = {
+  initial: 'initial',
+  animate: 'enter',
+  exit: 'exit',
+  variants: gridVariants
+}
+
+const postVariants = {
+  initial: {
+    opacity: 0,
+    y: 20,
+    scale: .9
+  },
+  enter: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: .4
+    }
+  }
+};
+
+const postWhileHover = {
+  position: 'relative',
+  zIndex: 1,
+  background: 'white',
+  scale: [1, 1.4, 1.2],
+  rotate: [0, 10, -10, 0],
+  filter: [
+    'hue-rotate(0) contrast(100%)',
+    'hue-rotate(360deg) contrast(200%)',
+    'hue-rotate(45deg) contrast(300%)',
+    'hue-rotate(0) contrast(100%)'],
+  transition: {
+    duration: .2
+  }
+}
+
+const postMotionProps = {
+  initial: 'initial',
+  animate: 'enter',
+  variants: postVariants,
+  whileHover: postWhileHover
+}
 
 export async function getServerSideProps() {
   const res = await fetch(defaultEndpoint);
@@ -84,11 +139,25 @@ export default function Home({ data }) {
         <title>Create Next App</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
+      
       <main>
-        <h1 className="title">
-          Wubba Lubba Dub Dub!
-        </h1>
+        <motion.div initial="hidden" animate="visible" variants={{
+          hidden: {
+            scale: .8,
+            opacity: 0
+          },
+          visible: {
+            scale: 1,
+            opacity: 1,
+            transition: {
+              delay: .4
+            }
+          },
+        }}>
+          <h1 className="title">
+            Wubba Lubba Dub Dub!
+          </h1>
+        </motion.div>
 
         <p className="description">
           Rick and Morty Character Wiki
@@ -98,29 +167,33 @@ export default function Home({ data }) {
           <input name="query" type="search" />
           <button>Search</button>
         </form>
-
-        <ul className="grid">
+        
+          
+        <motion.ul className="grid" {...gridMotionProps}>
           {results.map(result => {
             const { id, name, image } = result;
             return (
-              <li key={id} className="card">
-                <Link href="/character/[id]" as={`/character/${id}`}>
-                  <a> 
-                    <img src={image} alt={`${name} Thumbnail`} />       
-                      <h3>{ name }</h3>
-                  </a>
-                </Link>
-              </li>
-            )
+              <motion.li key={id} className="card" {...postMotionProps}>
+                <li key={id} className="card">
+                  <Link href="/character/[id]" as={`/character/${id}`}>
+                    <a> 
+                      <img src={image} alt={`${name} Thumbnail`} />       
+                        <h3>{ name }</h3>
+                    </a>
+                  </Link>
+                </li>
+              </motion.li>
+            );
           })}
-        </ul>
+        </motion.ul>
 
-        <p>
-          <button onClick={handleLoadMore}>Load More</button>
-        </p>
+        {info?.next && (
+          <p>
+            <button onClick={handleLoadMore}>Load More</button>
+          </p>
+        )}
+      
       </main>
-
-
 
       <footer>
         <a
@@ -133,7 +206,7 @@ export default function Home({ data }) {
         </a>
       </footer>
 
-      <style jsx>{`
+      <style>{`
         .container {
           min-height: 100vh;
           padding: 0 0.5rem;
